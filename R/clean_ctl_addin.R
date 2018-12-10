@@ -10,9 +10,7 @@ clean_ctl_addin <- function(){
   
   file.create(tf,showWarnings = FALSE)
   
-  paste0(adc$contents,collapse = '\n')%>%
-    ctl_style()%>%
-    cat(file=tf)
+  cat( ctl_style( paste0(adc$contents,collapse = '\n') ), file=tf)
   
   rstudioapi::navigateToFile(tf)  
 }
