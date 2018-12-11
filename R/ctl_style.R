@@ -16,7 +16,7 @@ ctl_style <- function(x){
 ctl_space <- function(x){
   x <- gsub('\\s+[=]|[=]\\s+','=',x)
   x <- gsub('=',' = ',x)
-  x <- gsub('\\s+[,]|[,]\\s+','=',x)
+  x <- gsub('\\s+[,]|[,]\\s+',',',x)
   x <- gsub(',',', ',x)
   x <- gsub('\\s+[;]|[;]\\s+',';',x)
   gsub(';',' ; ',x)
