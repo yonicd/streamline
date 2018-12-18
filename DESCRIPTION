@@ -1,15 +1,11 @@
 Package: streamline
 Title: NONMEM Control Stream Utilities
-Version: 0.0.0.9000
-Authors@R: person(given   = "Jonathan",
-         family  = "Sidi",
-         email   = "yonis@metrumrg.com",
-         role    = c("aut",'cre'),
-         comment = c(ORCID = "0000-0002-4222-1819")
-         )
+Version: 0.0.0.9001
+Authors@R: person(given = "Jonathan", family = "Sidi", email = "yonis@metrumrg.com", role =
+           c("aut",'cre'), comment = c(ORCID = "0000-0002-4222-1819") )
 Description: Functions to work with NONMEM control stream files.
 Depends: R (>= 3.3.0)
-Imports: rstudioapi, tools
+Imports: rstudioapi,tools,glue,purrr,whisker
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
