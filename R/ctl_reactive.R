@@ -10,8 +10,8 @@
 #' }
 #' @rdname validate_comments
 #' @export 
+#' @import shiny
 #' @importFrom miniUI miniPage gadgetTitleBar miniTitleBarButton miniContentPanel
-#' @importFrom shiny sidebarLayout sidebarPanel textInput uiOutput actionButton mainPanel tabsetPanel tabPanel radioButtons dataTableOutput renderUI selectInput eventReactive observeEvent renderDataTable stopApp runGadget paneViewer
 #' @importFrom shinyAce aceEditor updateAceEditor
 #' @importFrom tidynm read_nmlist parse_theta gather
 #' @importFrom xml2 xml_find_first xml_text
