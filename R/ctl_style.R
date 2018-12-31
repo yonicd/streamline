@@ -10,6 +10,8 @@ ctl_style <- function(x){
   x_align <- ctl_align(x_space)
   x_collapse <- paste0(x_align,collapse = '\n')
   x_return <- gsub('\\n[$]','\n\n$',x_collapse)
+  x_return <- gsub('OMEGA\\n  BLOCK','OMEGA  BLOCK',x_return)
+  x_return <- gsub('SIGMA\\n  BLOCK','SIGMA  BLOCK',x_return)
   x_return
 }
 

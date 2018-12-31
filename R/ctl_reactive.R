@@ -1,7 +1,5 @@
 #' @title Reactive Validation
 #' @description NONMEM Control Stream Comment Validation
-#' @param project character, path to project containing runs, 
-#'   Default: system.file('extdata',package = 'tidynm')
 #' @examples 
 #' \dontrun{
 #' if(interactive()){
@@ -10,16 +8,18 @@
 #' }
 #' @rdname validate_comments
 #' @export 
-#' @import shiny
 #' @importFrom miniUI miniPage gadgetTitleBar miniTitleBarButton miniContentPanel
+#' @import shiny
 #' @importFrom shinyAce aceEditor updateAceEditor
-#' @importFrom tidynm read_nmlist parse_theta gather
-#' @importFrom xml2 xml_find_first xml_text
-#' @importFrom dplyr select rename mutate
+#' @import tidynm
+#' @importFrom dplyr select rename mutate left_join
 #' @importFrom tidyr separate
 validate_comments <- function(
   project = system.file('extdata',package = 'tidynm')
   ) {
+  
+  PARAMS <- c('THETA','OMEGA','SIGMA')
+  
   ui <- miniUI::miniPage(
             miniUI::gadgetTitleBar(
               title = '',
@@ -28,31 +28,24 @@ validate_comments <- function(
     miniUI::miniContentPanel(
       shiny::sidebarLayout(
         sidebarPanel = shiny::sidebarPanel(
-          shiny::textInput(
-            inputId = 'project',
-            label = 'Project Path',
-            value = project,
-            placeholder = 'Path to NONMEM project'),
-          shiny::uiOutput('run'),
-          shiny::actionButton('read','Read')
+          shiny::fileInput('file','Control Stream File')
         ),
         mainPanel = shiny::mainPanel(
           shiny::tabsetPanel(
             shiny::tabPanel('Control Stream',
                             shinyAce::aceEditor(
                               outputId = 'ctl_text',
-                              value = '',
+                              value = paste0(sprintf('$%s',PARAMS),collapse = '\n\n'),
                               mode='r',
                               wordWrap = TRUE,
-                              debounce = 10)
+                              debounce = 10,
+                              height = '600px')
                             ),
             shiny::tabPanel('Validation',
                             shiny::radioButtons(
                               inputId = 'type',
                               label = 'Statistic',
-                              choices = c('THETA',
-                                          'OMEGA',
-                                          'SIGMA'),
+                              choices = PARAMS,
                               selected = 'THETA',
                               inline = TRUE),
                             shiny::dataTableOutput('param_table'))
@@ -63,71 +56,104 @@ validate_comments <- function(
   )
   
   server <- function(input, output, session) {
-  
-      output$run <- shiny::renderUI({
-        
-        runs <- basename(list.dirs(input$project)[-1])
-        
-        shiny::selectInput(
-          inputId = 'run',
-          label = 'Run',
-          choices = runs,
-          selected = runs[1])
-      })  
-    
-    
-    ctl <- shiny::eventReactive(input$read,{
-      tidynm::read_nmlist(input$run, input$project)%>%
-        xml2::xml_find_first('.//nm:control_stream')%>%
-        xml2::xml_text()
-    })
-   
-    shiny::observeEvent(c(input$type,input$read),{
+
+    shiny::observeEvent(input$file,{
         shinyAce::updateAceEditor(
           session = session,
           editorId = 'ctl_text',
-          value = ctl()%>%
+          value = readLines(input$file$datapath)%>%
+            paste0(collapse = '\n')%>%
             ctl_style()
         )
       })
     
-        shiny::observeEvent(c(input$type,input$read,input$ctl_text),{
-          output$param_table <- shiny::renderDataTable({
+    clean_reactive <- shiny::eventReactive(c(input$file,input$ctl_text),{
+      input$ctl_text%>%clean_ctl()
+    })
+    
+    shiny::observeEvent(c(input$file,input$ctl_text),{
+      clean <- clean_reactive()
+      new_values <- intersect(PARAMS,names(clean))
+      shiny::updateRadioButtons(session,inputId = 'type',label = 'Statistic',choices = new_values,selected = new_values[1],inline = TRUE)  
+    })
+    
+    
+    shiny::observeEvent(c(input$type,input$ctl_text),{
 
-            ret <- NULL
+      output$param_table <- shiny::renderDataTable({
+        
+        clean <- clean_reactive()
+        
+        ret <- NULL
+
+        THIS_PARAMS <- intersect(names(clean),PARAMS)
+
+        if(!input$type%in%THIS_PARAMS)
+          return(ret)
+        
+        if(input$type=='THETA'){
+
+          if(clean[[input$type]]%in%THIS_PARAMS)
+            return(ret)
+          
+          ret <- clean[[input$type]]%>%
+            tidynm::parse_theta()%>%
+            dplyr::select(-Var2)%>%
+            dplyr::rename(ROW = Var1,LOWER = LB, UPPER = UB)
+        }
+        
+        if(input$type%in%c('OMEGA','SIGMA')){
+          
+          if(any(clean[[input$type]]%in%THIS_PARAMS))
+            return(ret)
+
+            ret_comment <- clean[[input$type]]%>%
+              tidynm::ctl_to_mat(type='comment')
             
-            clean <- input$ctl_text%>%
-              tidynm:::clean_ctl()
+            if(inherits(ret_comment,'list'))
+              ret_comment <- ret_comment%>%combine_blocks()
+
+            ret_comment <- ret_comment%>%
+              tidynm::gather()%>%
+              dplyr::mutate(
+                value = ifelse(nzchar(value),value,strrep('|',6)),
+                value = gsub(strrep('\\|',6),strrep('|',4),value)
+                )%>%
+              tidyr::separate(value,c('FIXED','TYPE','LABEL'),sep=strrep('\\|',2),fill='left')%>%
+              dplyr::rename(ROW = Var1,COL = Var2)
             
-            if(input$type=='THETA'){
-              ret <- clean[[input$type]]%>%
-                tidynm::parse_theta()%>%
-                dplyr::select(-Var2)%>%
-                dplyr::rename(ROW = Var1,LOWER = LB, UPPER = UB)
-            }
+            ret_value <- clean[[input$type]]%>%
+              tidynm::ctl_to_mat()
             
-            if(input$type%in%c('OMEGA','SIGMA')){
-              suppressWarnings({
-                ret <- clean[[input$type]]%>%
-                  ctl_to_mat(type='comment')%>%
-                  tidynm::gather()%>%
-                  dplyr::mutate(value=ifelse(nzchar(value),value,'||||||'))%>%
-                  tidyr::separate(value,c('FIXED','TYPE','LABEL'),sep='\\|\\|')%>%
-                  dplyr::rename(ROW = Var1,COL = Var2)
-              })
-              
-            }
+            if(inherits(ret_value,'list'))
+              ret_value <- ret_value%>%combine_blocks()
             
-            ret
+            ret_value <- ret_value%>%
+              tidynm::gather()%>%
+              dplyr::rename(ROW = Var1,COL = Var2,VALUE=value)
             
-          })  
-        })
+            ret <- ret_value%>%dplyr::left_join(ret_comment,by=c('ROW','COL'))
+
+        }
+        
+        ret
+        
+      },
+      options = list( 
+        scrollY = '600px', 
+        paging = FALSE 
+      ))  
+    })
       
     shiny::observeEvent(input$qt, {
       shiny::stopApp()
     })
+    
   }
   
   shiny::runGadget(ui, server, viewer = shiny::paneViewer(minHeight = 450))
 }
   
+
+clean_ctl <- get('clean_ctl',envir = asNamespace('tidynm'))
+combine_blocks <- get('combine_blocks',envir = asNamespace('tidynm'))

@@ -6,10 +6,6 @@
 \usage{
 validate_comments(project = system.file("extdata", package = "tidynm"))
 }
-\arguments{
-\item{project}{character, path to project containing runs, 
-Default: system.file('extdata',package = 'tidynm')}
-}
 \description{
 NONMEM Control Stream Comment Validation
 }

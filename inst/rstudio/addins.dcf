@@ -2,3 +2,8 @@ Name: Clean NONMEM Control Stream
 Description: Remove Comment Lines and Reflow NONMEM Chunks
 Binding: clean_ctl_addin
 Interactive: false
+
+Name: Validate NONMEM Control Stream
+Description: Validate Comments for THETA/OMEGA/SIGMA blocks in Control Stream Files
+Binding: validate_comments
+Interactive: true
