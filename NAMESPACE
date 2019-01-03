@@ -2,11 +2,13 @@
 
 export(ctl_block)
 export(ctl_blocks)
+export(ctl_compare)
 export(ctl_create)
 export(ctl_wrap)
 export(validate_comments)
 import(shiny)
 import(tidynm)
+importFrom(diffr,diffr)
 importFrom(dplyr,left_join)
 importFrom(dplyr,mutate)
 importFrom(dplyr,rename)
