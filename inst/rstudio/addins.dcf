@@ -1,9 +1,24 @@
-Name: Clean NONMEM Control Stream
+Name: Comment Line
+Description: Make a comment line for highlighted rows
+Binding: comment_line_addin
+Interactive: false
+
+Name: Comment Block
+Description: Insert a comment block around highlighted text
+Binding: comment_block_addin
+Interactive: false
+
+Name: Comment Block File
+Description: Insert comment blocks in a Control Stream File
+Binding: comment_block_file_addin
+Interactive: false
+
+Name: Clean
 Description: Remove Comment Lines and Reflow NONMEM Chunks
 Binding: clean_ctl_addin
 Interactive: false
 
-Name: Validate NONMEM Control Stream
+Name: Validate
 Description: Validate Comments for THETA/OMEGA/SIGMA blocks in Control Stream Files
 Binding: validate_comments
 Interactive: true

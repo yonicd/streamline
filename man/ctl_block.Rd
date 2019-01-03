@@ -4,7 +4,7 @@
 \alias{ctl_block}
 \title{FUNCTION_TITLE}
 \usage{
-ctl_block(BLOCK)
+ctl_block(BLOCK, align = "c")
 }
 \arguments{
 \item{BLOCK}{PARAM_DESCRIPTION}

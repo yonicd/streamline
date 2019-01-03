@@ -36,7 +36,7 @@ validate_comments <- function(
                             shinyAce::aceEditor(
                               outputId = 'ctl_text',
                               value = paste0(sprintf('$%s',PARAMS),collapse = '\n\n'),
-                              mode='r',
+                              mode='fortran',
                               wordWrap = TRUE,
                               debounce = 10,
                               height = '600px')
@@ -63,7 +63,8 @@ validate_comments <- function(
           editorId = 'ctl_text',
           value = readLines(input$file$datapath)%>%
             paste0(collapse = '\n')%>%
-            ctl_style()
+            ctl_style()%>%
+            ctl_block_file()
         )
       })
     
