@@ -133,8 +133,12 @@ validate_comments <- function(
               tidynm::gather()%>%
               dplyr::rename(ROW = Var1,COL = Var2,VALUE=value)
             
-            ret <- ret_value%>%dplyr::left_join(ret_comment,by=c('ROW','COL'))
-
+            ret <- ret_value%>%
+              dplyr::left_join(ret_comment,by=c('ROW','COL'))%>%
+              dplyr::mutate(
+                TYPE = ifelse(is.na(!!(rlang::sym('TYPE')))|!nzchar(!!(rlang::sym('TYPE'))), "[A]", !!(rlang::sym('TYPE')))
+              )%>%
+              nm_create()
         }
         
         ret
