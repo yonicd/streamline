@@ -36,7 +36,7 @@ validate_comments <- function(
                             shinyAce::aceEditor(
                               outputId = 'ctl_text',
                               value = paste0(sprintf('$%s',PARAMS),collapse = '\n\n'),
-                              mode='fortran',
+                              mode="assembly_x86",
                               wordWrap = TRUE,
                               debounce = 10,
                               height = '600px')
