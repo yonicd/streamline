@@ -14,11 +14,17 @@
 #' @import tidynm
 #' @importFrom dplyr select rename mutate left_join
 #' @importFrom tidyr separate
+#' @importFrom shinyFiles shinyFilesButton shinyFileChoose parseFilePaths
 validate_comments <- function(
   project = system.file('extdata',package = 'tidynm')
   ) {
   
-  PARAMS <- c('THETA','OMEGA','SIGMA')
+  PARAMS  <- c('THETA','OMEGA','SIGMA')
+  volumes <- c('Current Directory' = getwd(),
+               Examples = project,
+               User = '~',
+               getVolumes()()
+              )
   
   ui <- miniUI::miniPage(
             miniUI::gadgetTitleBar(
@@ -28,7 +34,7 @@ validate_comments <- function(
     miniUI::miniContentPanel(
       shiny::sidebarLayout(
         sidebarPanel = shiny::sidebarPanel(
-          shiny::fileInput('file','Control Stream File')
+          shinyFilesButton("files", "File select", "Please select a control stream file", multiple = FALSE)
         ),
         mainPanel = shiny::mainPanel(
           shiny::tabsetPanel(
@@ -57,22 +63,29 @@ validate_comments <- function(
   
   server <- function(input, output, session) {
 
-    shiny::observeEvent(input$file,{
+    shinyFileChoose(input, "files", roots = volumes, session = session)
+    
+    shiny::observeEvent(input$files,{
+      if(is.list(input$files)){
+        
+        thisfile <- shinyFiles::parseFilePaths(roots = volumes,selection = input$files)
+
         shinyAce::updateAceEditor(
           session = session,
           editorId = 'ctl_text',
-          value = readLines(input$file$datapath)%>%
+          value = readLines(thisfile$datapath)%>%
             paste0(collapse = '\n')%>%
             ctl_style()%>%
             ctl_block_file()
-        )
-      })
+        )    
+      }
+    })
     
-    clean_reactive <- shiny::eventReactive(c(input$file,input$ctl_text),{
+    clean_reactive <- shiny::eventReactive(c(input$files,input$ctl_text),{
       input$ctl_text%>%clean_ctl()
     })
     
-    shiny::observeEvent(c(input$file,input$ctl_text),{
+    shiny::observeEvent(c(input$files,input$ctl_text),{
       clean <- clean_reactive()
       new_values <- intersect(PARAMS,names(clean))
       shiny::updateRadioButtons(session,inputId = 'type',label = 'Statistic',choices = new_values,selected = new_values[1],inline = TRUE)  
