@@ -23,7 +23,7 @@ validate_comments <- function(
   volumes <- c('Current Directory' = getwd(),
                Examples = project,
                User = '~',
-               getVolumes()()
+               shinyFiles::getVolumes()()
               )
   
   ui <- miniUI::miniPage(
