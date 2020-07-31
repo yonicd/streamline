@@ -34,7 +34,8 @@ validate_comments <- function(
     miniUI::miniContentPanel(
       shiny::sidebarLayout(
         sidebarPanel = shiny::sidebarPanel(
-          shinyFilesButton("files", "File select", "Please select a control stream file", multiple = FALSE)
+          shinyFiles::shinyFilesButton(id = "files",label =  "File select",title =  "Please select a control stream file", multiple = FALSE),
+          shinyFiles::shinySaveButton(id = "save",label =  "Save to File",title =  "Save Content to File")
         ),
         mainPanel = shiny::mainPanel(
           shiny::tabsetPanel(
@@ -63,7 +64,8 @@ validate_comments <- function(
   
   server <- function(input, output, session) {
 
-    shinyFileChoose(input, "files", roots = volumes, session = session)
+    shinyFiles::shinyFileChoose(input = input,id =  "files", roots = volumes, session = session)
+    shinyFiles::shinyFileSave(input = input,id = 'save',session = session,roots = volumes)
     
     shiny::observeEvent(input$files,{
       if(is.list(input$files)){
