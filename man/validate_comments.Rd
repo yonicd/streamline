@@ -4,7 +4,10 @@
 \alias{validate_comments}
 \title{Reactive Validation}
 \usage{
-validate_comments(project = system.file("extdata", package = "tidynm"))
+validate_comments(project = system.file("streams", package = "streamline"))
+}
+\arguments{
+\item{project}{Path to NONMEM project}
 }
 \description{
 NONMEM Control Stream Comment Validation

@@ -1,5 +1,6 @@
 #' @title Reactive Validation
 #' @description NONMEM Control Stream Comment Validation
+#' @param project Path to NONMEM project 
 #' @examples 
 #' \dontrun{
 #' if(interactive()){
@@ -11,12 +12,12 @@
 #' @importFrom miniUI miniPage gadgetTitleBar miniTitleBarButton miniContentPanel
 #' @import shiny
 #' @importFrom shinyAce aceEditor updateAceEditor
-#' @import tidynm
 #' @importFrom dplyr select rename mutate left_join
 #' @importFrom tidyr separate
+#' @importFrom rlang sym
 #' @importFrom shinyFiles shinyFilesButton shinyFileChoose parseFilePaths
 validate_comments <- function(
-  project = system.file('extdata',package = 'tidynm')
+  project = system.file('streams',package = 'streamline')
   ) {
   
   PARAMS  <- c('THETA','OMEGA','SIGMA')
@@ -113,9 +114,11 @@ validate_comments <- function(
             return(ret)
           
           ret <- clean[[input$type]]%>%
-            tidynm::parse_theta()%>%
-            dplyr::select(-Var2)%>%
-            dplyr::rename(ROW = Var1,LOWER = LB, UPPER = UB)
+            parse_theta()%>%
+            dplyr::select(-!!rlang::sym('Var2'))%>%
+            dplyr::rename(ROW = !!rlang::sym('Var1'),
+                          LOWER = !!rlang::sym('LB'), 
+                          UPPER = !!rlang::sym('UB'))
         }
         
         if(input$type%in%c('OMEGA','SIGMA')){
@@ -124,29 +127,34 @@ validate_comments <- function(
             return(ret)
 
             ret_comment <- clean[[input$type]]%>%
-              tidynm::ctl_to_mat(type='comment')
+              ctl_to_mat(type='comment')
             
             if(inherits(ret_comment,'list'))
               ret_comment <- ret_comment%>%combine_blocks()
 
             ret_comment <- ret_comment%>%
-              tidynm::gather()%>%
+              gather()%>%
               dplyr::mutate(
-                value = ifelse(nzchar(value),value,strrep('|',6)),
-                value = gsub(strrep('\\|',6),strrep('|',4),value)
+                value = ifelse(nzchar(!!rlang::sym('value')),
+                               !!rlang::sym('value'),
+                               strrep('|',6)),
+                value = gsub(strrep('\\|',6),strrep('|',4),!!rlang::sym('value'))
                 )%>%
-              tidyr::separate(value,c('FIXED','TYPE','LABEL'),sep=strrep('\\|',2),fill='left')%>%
-              dplyr::rename(ROW = Var1,COL = Var2)
+              tidyr::separate(!!rlang::sym('value'),c('FIXED','TYPE','LABEL'),
+                              sep = strrep('\\|',2),fill='left')%>%
+              dplyr::rename(ROW = !!rlang::sym('Var1'),COL = !!rlang::sym('Var2'))
             
             ret_value <- clean[[input$type]]%>%
-              tidynm::ctl_to_mat()
+              ctl_to_mat()
             
             if(inherits(ret_value,'list'))
               ret_value <- ret_value%>%combine_blocks()
             
             ret_value <- ret_value%>%
-              tidynm::gather()%>%
-              dplyr::rename(ROW = Var1,COL = Var2,VALUE=value)
+              gather()%>%
+              dplyr::rename(ROW = !!rlang::sym('Var1'),
+                            COL = !!rlang::sym('Var2'),
+                            VALUE = !!rlang::sym('value'))
             
             ret <- ret_value%>%
               dplyr::left_join(ret_comment,by=c('ROW','COL'))%>%
@@ -173,7 +181,3 @@ validate_comments <- function(
   
   shiny::runGadget(ui, server, viewer = shiny::paneViewer(minHeight = 450))
 }
-  
-
-clean_ctl <- get('clean_ctl',envir = asNamespace('tidynm'))
-combine_blocks <- get('combine_blocks',envir = asNamespace('tidynm'))

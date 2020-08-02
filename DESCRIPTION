@@ -1,12 +1,14 @@
 Package: streamline
 Title: NONMEM Control Stream Utilities
 Version: 0.0.0.9003
-Authors@R: person(given = "Jonathan", family = "Sidi", email = "yonicd@gmail.com", role = c("aut",'cre'), comment = c(ORCID =
-                "0000-0002-4222-1819") )
+Authors@R: person(given = "Jonathan", family = "Sidi", 
+                  email = "yonicd@gmail.com", role = c("aut",'cre'), 
+                  comment = c(ORCID = "0000-0002-4222-1819") )
 Description: Functions to work with NONMEM control stream files.
-Depends: R (>= 3.3.0), tidynm
-Imports: rstudioapi,tools,miniUI,shiny,shinyAce,dplyr,tidyr,glue,purrr,whisker,diffr, shinyFiles,fs
+Depends: R (>= 3.3.0)
+Imports: rstudioapi,tools,miniUI,shiny,shinyAce,dplyr,tibble,
+         tidyr,glue,purrr,whisker,diffr, shinyFiles,fs,rlang,stringi,xml2
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1
